@@ -6,6 +6,14 @@ const expect = chai.expect;
 chai.should();
 chai.use(require('chai-bn')(BN));
 
+
+const {
+  ether,
+  // BN,           // Big Number support
+  // constants,    // Common constants, like the zero address and largest integers
+  expectEvent,  // Assertions for emitted events
+  expectRevert, // Assertions for transactions that should fail
+} = require('@openzeppelin/test-helpers');
 // // const { expect } = require("chai")
 // // const chai = require('chai')
 // const BN = require('bn.js');
@@ -40,8 +48,8 @@ contract('Emergency', (accounts) => {
     const CONTRACT_SYMBOL = "ET"
     const CONTRACT_VERSION = "1"
     const MAX_EXPIRATION = ethers.constants.MaxUint256;
-    const JOHN_EMERGENCY_ADDRESS = accounts[9].toLowerCase()
-    const JOHN_ADDRESS = accounts[0].toLowerCase()
+    const JOHN_EMERGENCY_ADDRESS = accounts[9]
+    const JOHN_ADDRESS = accounts[0]
     // (from accounts[0])
     const JOHN_PRIVATE_KEY =
       "0xc4a64ffd93634d827dc442ee64284d403944765b143f0948cf68e20a5b4b7a73"
@@ -90,21 +98,30 @@ contract('Emergency', (accounts) => {
                 digest,
                 signedMsg.v, 
                 signedMsg.r, 
-                signedMsg.s)).toLowerCase()
+                signedMsg.s))
             ).to.equal(JOHN_ADDRESS)
         })
 
         it("registers emergency address for John", async() => {
-            await emergencyTransferContract.registerEmergencyAddress(JOHN_EMERGENCY_ADDRESS)
+            const receipt = await emergencyTransferContract.registerEmergencyAddress(JOHN_EMERGENCY_ADDRESS)
 
             // Check if emergency address matches
             expect(
-                (await emergencyTransferContract.getEmergencyAddress(JOHN_ADDRESS)).toLowerCase()
+                (await emergencyTransferContract.getEmergencyAddress(JOHN_ADDRESS))
             ).to.equal(JOHN_EMERGENCY_ADDRESS)
+
+            expectEvent(
+              receipt, 
+              'RegisterEmergencyAddress', 
+              { 
+                tokenHolder: JOHN_ADDRESS, 
+                emergencyAddress: JOHN_EMERGENCY_ADDRESS 
+              }
+            )
         })
 
         it("transfers all John's tokens (100 tokens) to his emergency address, then his address is blacklisted", async() => {
-            await emergencyTransferContract.emergencyTransfer(
+            const receipt = await emergencyTransferContract.emergencyTransfer(
                 JOHN_ADDRESS,
                 MAX_EXPIRATION,
                 signedMsg.v, 
@@ -114,16 +131,27 @@ contract('Emergency', (accounts) => {
             const isBlacklisted = (await emergencyTransferContract.accountInformation(JOHN_ADDRESS))[1]
 
             expect(isBlacklisted).to.equal(true)
+
+            expectEvent(
+              receipt, 
+              'EmergencyTransfer', 
+              { 
+                caller: JOHN_ADDRESS, 
+                signer: JOHN_ADDRESS, 
+                emergencyAddress:  JOHN_EMERGENCY_ADDRESS,
+                amount: web3.utils.toWei('100', 'Ether')
+              }
+            )
         })
 
         it("has 0 token in John's address after the emergency transfer", async() => {
             expect(await emergencyTransferContract.balanceOf(JOHN_ADDRESS))
-              .to.be.a.bignumber.that.equals(new BN(0))
+              .to.be.bignumber.equal(new BN(0))
         })
 
         it("has 100 tokens in John's emergency address after the emergency transfer", async() => {
             expect(await emergencyTransferContract.balanceOf(JOHN_EMERGENCY_ADDRESS))
-              .to.be.a.bignumber.that.equals(new BN(web3.utils.toWei('100', 'Ether')))
+              .to.be.bignumber.equal(new BN(web3.utils.toWei('100', 'Ether')))
         })
 
         it("tries to transfer 100 tokens to the previously blacklisted John's address, but it is transferred to it's emergency address", async() => {
@@ -132,11 +160,11 @@ contract('Emergency', (accounts) => {
             
             // Because the address is blacklisted, it cannot receive any tokens. Thus the balance should be 0.            
             expect(await emergencyTransferContract.balanceOf(JOHN_ADDRESS))
-              .to.be.a.bignumber.that.equals(new BN(0))
+              .to.be.bignumber.equal(new BN(0))
 
             // On the other hand, token is transfered to it's emergency address. So, the emergency address' balance should be 100.
             expect(await emergencyTransferContract.balanceOf(JOHN_EMERGENCY_ADDRESS))
-              .to.be.a.bignumber.that.equals(new BN(web3.utils.toWei("100", 'Ether')))
+              .to.be.bignumber.equal(new BN(web3.utils.toWei("100", 'Ether')))
         })
       })
 })
