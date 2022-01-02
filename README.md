@@ -37,3 +37,9 @@ Mnemonic:      oppose keep escape certain again neck organ question broccoli pul
 Sending transaction from different addresses in truffle test case
 
 https://ethereum.stackexchange.com/questions/83704/sending-transaction-from-different-addresses-in-truffle-test-case
+
+
+npm install --save-dev chai-bn
+
+
+test Event with @openzeppelin/test-helpers
