@@ -1,46 +1,21 @@
-
 const BN = require('bn.js');
 const chai = require('chai');
 const expect = chai.expect;
-
 chai.should();
 chai.use(require('chai-bn')(BN));
-
-
 const {
-  ether,
-  // BN,           // Big Number support
-  // constants,    // Common constants, like the zero address and largest integers
   expectEvent,  // Assertions for emitted events
   expectRevert, // Assertions for transactions that should fail
 } = require('@openzeppelin/test-helpers');
-// // const { expect } = require("chai")
-// // const chai = require('chai')
-// const BN = require('bn.js');
-// // // Enable and inject BN dependency
-// // chai.use(require('chai-bn')(BN));
-
-// require('chai')
-//   .use(require('chai-bn')(BN))
-//   .should()
-  
-
-// const {
-//   BN,           // Big Number support
-//   constants,    // Common constants, like the zero address and largest integers
-//   expectEvent,  // Assertions for emitted events
-//   expectRevert, // Assertions for transactions that should fail
-// } = require('@openzeppelin/test-helpers');
-
-const Emergency = artifacts.require("Emergency");
-
 const ethers = require("ethers")
 const {
     keccak256,
     toUtf8Bytes,
-    defaultAbiCoder
+    defaultAbiCoder,
+    SigningKey
 } = require("ethers").utils;
-const ethUtil = require("ethereumjs-util")
+
+const Emergency = artifacts.require("Emergency");
 
 contract('Emergency', (accounts) => {
     
@@ -88,17 +63,14 @@ contract('Emergency', (accounts) => {
 
         it("recovers the signer(John), who signed the digest", async() => {
             // Sign the digest
-            signedMsg = ethUtil.ecsign(
-                ethUtil.toBuffer(digest), 
-                ethUtil.toBuffer(JOHN_PRIVATE_KEY)
-            )
+            signature = (new SigningKey(JOHN_PRIVATE_KEY)).signDigest(digest)
             
             // Recover the signer and check if the signer is John
             expect((await emergencyTransferContract.recoverSigner(
                 digest,
-                signedMsg.v, 
-                signedMsg.r, 
-                signedMsg.s))
+                signature.v, 
+                signature.r, 
+                signature.s))
             ).to.equal(JOHN_ADDRESS)
         })
 
@@ -124,9 +96,9 @@ contract('Emergency', (accounts) => {
             const receipt = await emergencyTransferContract.emergencyTransfer(
                 JOHN_ADDRESS,
                 MAX_EXPIRATION,
-                signedMsg.v, 
-                signedMsg.r, 
-                signedMsg.s
+                signature.v, 
+                signature.r, 
+                signature.s
             )
             const isBlacklisted = (await emergencyTransferContract.accountInformation(JOHN_ADDRESS))[1]
 
