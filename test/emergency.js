@@ -35,7 +35,7 @@ contract('Emergency', (accounts) => {
     const JOHN_ADDRESS = accounts[0].toLowerCase()
     // (from accounts[0])
     const JOHN_PRIVATE_KEY =
-      "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+      "0xc4a64ffd93634d827dc442ee64284d403944765b143f0948cf68e20a5b4b7a73"
 
     before(async() => {
         // EmergencyTransferContract = await ethers.ContractFactory("Emergency")
@@ -47,17 +47,18 @@ contract('Emergency', (accounts) => {
         // await emergencyTransferContract.deployed()
 
         emergencyTransferContract = await Emergency.deployed();
+        ethers.Signer.
     })
 
     describe("about John(hypothetical user) using the emergency transfer contract", async () => {
         
         it("builds the emergency transfer digest correctly", async() => {
-            // build type hash
+            // Build message type hash
             const EMERGENCY_TRANSFER_TYPEHASH = keccak256(
                 toUtf8Bytes("EmergencyTransfer(address signer,uint256 expiration)")
             );
 
-            // build struct hash
+            // Build struct hash
             const EMERGENCY_TRANSFER_STRUCTHASH = keccak256(
                 defaultAbiCoder.encode(
                   ["bytes32", "address", "uint256"],
@@ -65,12 +66,12 @@ contract('Emergency', (accounts) => {
                 )
             );
 
-            // build the digest
+            // Build the digest
             digest = await emergencyTransferContract.buildHashTypedDataV4(
                 EMERGENCY_TRANSFER_STRUCTHASH
             )
             
-            // check if the digest matches
+            // Check if the digest matches
             expect(await emergencyTransferContract.buildDigest(
                 JOHN_ADDRESS,
                 MAX_EXPIRATION  
@@ -78,13 +79,13 @@ contract('Emergency', (accounts) => {
         })
 
         it("recovers the signer(John), who signed the digest", async() => {
-            // sign the digest
+            // Sign the digest
             signedMsg = ethUtil.ecsign(
                 ethUtil.toBuffer(digest), 
                 ethUtil.toBuffer(JOHN_PRIVATE_KEY)
             )
             
-            // recover the signer and check if the signer is John
+            // Recover the signer and check if the signer is John
             expect((await emergencyTransferContract.recoverSigner(
                 digest,
                 signedMsg.v, 
@@ -96,7 +97,7 @@ contract('Emergency', (accounts) => {
         it("registers emergency address for John", async() => {
             await emergencyTransferContract.registerEmergencyAddress(JOHN_EMERGENCY_ADDRESS)
 
-            // check if emergency address matches
+            // Check if emergency address matches
             expect(
                 (await emergencyTransferContract.getEmergencyAddress(JOHN_ADDRESS)).toLowerCase()
             ).to.equal(JOHN_EMERGENCY_ADDRESS)

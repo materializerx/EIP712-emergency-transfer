@@ -29,3 +29,11 @@ Execute `ganache-cli --port 8547` to run ganache listening on 8547
 
 Last thing I was doing was to edit the test file
 I need to update the `private key` to match the one from `ganache-cli`
+
+
+Mnemonic:      oppose keep escape certain again neck organ question broccoli pulp dawn siege
+
+
+Sending transaction from different addresses in truffle test case
+
+https://ethereum.stackexchange.com/questions/83704/sending-transaction-from-different-addresses-in-truffle-test-case
