@@ -1,5 +1,13 @@
+***THIS is draft***
+
+How to setup
+
+How to run & test
+
+How to deploy
 
 
+Development Notes
 
 ```
 $ mkdir myproject && cd myproject
@@ -42,4 +50,4 @@ https://ethereum.stackexchange.com/questions/83704/sending-transaction-from-diff
 npm install --save-dev chai-bn
 
 
-test Event with @openzeppelin/test-helpers
+I need to test Event with @openzeppelin/test-helpers

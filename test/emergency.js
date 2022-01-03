@@ -4,8 +4,7 @@ const expect = chai.expect;
 chai.should();
 chai.use(require('chai-bn')(BN));
 const {
-  expectEvent,  // Assertions for emitted events
-  expectRevert, // Assertions for transactions that should fail
+  expectEvent
 } = require('@openzeppelin/test-helpers');
 const ethers = require("ethers")
 const {
@@ -18,16 +17,16 @@ const {
 const Emergency = artifacts.require("Emergency");
 
 contract('Emergency', (accounts) => {
-    
-    const CONTRACT_NAME = "Emergency"
-    const CONTRACT_SYMBOL = "ET"
-    const CONTRACT_VERSION = "1"
+  
     const MAX_EXPIRATION = ethers.constants.MaxUint256;
     const JOHN_EMERGENCY_ADDRESS = accounts[9]
     const JOHN_ADDRESS = accounts[0]
     // (from accounts[0])
     const JOHN_PRIVATE_KEY =
       "0xc4a64ffd93634d827dc442ee64284d403944765b143f0948cf68e20a5b4b7a73"
+
+    let digest
+    let signature
 
     before(async() => {
         emergencyTransferContract = await Emergency.deployed();
@@ -81,7 +80,7 @@ contract('Emergency', (accounts) => {
             expect(
                 (await emergencyTransferContract.getEmergencyAddress(JOHN_ADDRESS))
             ).to.equal(JOHN_EMERGENCY_ADDRESS)
-
+            // Check if the event has been emitted correcly
             expectEvent(
               receipt, 
               'RegisterEmergencyAddress', 
@@ -101,9 +100,9 @@ contract('Emergency', (accounts) => {
                 signature.s
             )
             const isBlacklisted = (await emergencyTransferContract.accountInformation(JOHN_ADDRESS))[1]
-
+            // Check if it is blacklisted
             expect(isBlacklisted).to.equal(true)
-
+            // Check if the event has been emitted correcly
             expectEvent(
               receipt, 
               'EmergencyTransfer', 
